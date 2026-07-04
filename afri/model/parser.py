@@ -73,7 +73,7 @@ class Parser:
                 expr_node = self.expr()
                 return AssignNode(left=var_node, right=expr_node)
             else:
-                raise SyntaxError("Instrução inválida baseada em identificador.")
+                return var_node
 
         return self.expr()
 
