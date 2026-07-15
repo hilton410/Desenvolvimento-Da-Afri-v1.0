@@ -1,90 +1,179 @@
 # ==========================================
 # NODE.PY - Árvores AST
 # ==========================================
-from afri.model.token import Token
+from .token import Token
 
 class ASTNode:
-    def __init__(self, token: Token):
-        self._token = token
+    FEATURE = {
+        # incluir características
+        # 'value': str | list[str],
+        # 'token': str,
+        #  'type': str,
+    }
+    _NODES = {
+        # include nodes
+        # Token.INTEGER: NumberNode
+    }
+    _CONTROLS = {
+        # control exec
+        # key: value
+    }
 
-    def exec(self, **kwargs) -> object:
+    def __init__(self, value: object):
+        self._value = value
+        self._line = (0, 0)
+
+    @staticmethod
+    def ctrl(exec_func):
+        def ctrl_exec(*args, **kwargs):
+            if not ASTNode.exs_ctrl():
+                return exec_func(*args, **kwargs)
+            return None
+
+        return ctrl_exec
+
+    def exec(self, **kwargs):
         return None
 
-    @property
-    def token(self) -> Token:
-        return self._token
+    @staticmethod
+    def register(*args):
+        for arg in args:
+            if arg not in ASTNode._NODES:
+                if Token.register(arg.FEATURE):
+                    ASTNode._NODES[arg.FEATURE['token']] = arg
+
+    @staticmethod
+    def include_nodes(**kwargs):
+        for key, value in kwargs.items():
+            if key not in ASTNode._NODES:
+                ASTNode._NODES[key] = value
+
+    @staticmethod
+    def add_ctrl(key, value):
+        ASTNode._CONTROLS.update({key: value})
+
+    @staticmethod
+    def get_ctrl(key):
+        if key in ASTNode._CONTROLS:
+            return ASTNode._CONTROLS[key]
+        return None
+
+    @staticmethod
+    def del_ctrl(key):
+        ASTNode._CONTROLS.pop(key)
+
+    @staticmethod
+    def exs_ctrl():
+        return len(ASTNode._CONTROLS)
+
+    @staticmethod
+    def all_ctrl():
+        return { **ASTNode._CONTROLS }
+
+    @staticmethod
+    def get_node(token: Token, **kwargs):
+        if token.type in ASTNode._NODES:
+            node = ASTNode._NODES[token.type]
+            value = token.value
+            if 'value' in kwargs:
+                value = kwargs['value']
+
+            if issubclass(node, KeyNode):
+                if isinstance(value, Block):
+                    node = KeyBlockNode
+
+            if issubclass(node, IsolateNode):
+                if isinstance(value, Block):
+                    node = IsolateBlockNode
+
+            if issubclass(node, SeparateNode):
+                if (isinstance(kwargs['left'], Block) or
+                    isinstance(kwargs['right'], Block)):
+                    node = SeparateBlockNode
+
+            if issubclass(node, UniOpNode):
+                return node(value, kwargs['right']).setline(token.line)
+
+            if issubclass(node, BinOpNode):
+                return node.order_fat(node, token, kwargs['left'], kwargs['right'])
+
+            if issubclass(node, FunctionNode):
+                return node(value, kwargs['args']).setline(token.line)
+            return node(value).setline(token.line)
+        return None
+
+    @staticmethod
+    def get_class_node(token: Token):
+        if token.type in ASTNode._NODES:
+            return ASTNode._NODES[token.type]
+        return None
+
+    @staticmethod
+    def view(value):
+        context = ASTNode.format_data(value).replace('\n', ' ').replace('\t', ' ')
+        dots = '...' if len(context) > 29 else ''
+        return context[:29] + dots
+
+    @staticmethod
+    def format_data(data, src=False):
+        if data is None:
+            return Token.token(Token.NULL)
+
+        if isinstance(data, bool):
+            return BooleanNode.format(data)
+
+        if src and isinstance(data, str):
+            return StringNode.format(data)
+
+        if isinstance(data, list):
+            content = '('
+            for i in range(len(data)):
+                if len(content) - 1: content += ', '
+                if isinstance(data[i], str):
+                    content += StringNode.format(data[i])
+                else:
+                    content += ASTNode.format_data(data[i])
+            return content + ')'
+        return str(data)
 
     @property
     def value(self):
-        return self._token.value
+        return self._value
+
+    def setline(self, line: tuple[int, int]):
+        if not self._line[0]:
+            self._line = line
+        return self
+
+    def getline(self) -> tuple[int, int]:
+        return self._line
 
     def __repr__(self):
-        return f"{self._token.value}"
-
-class NumberNode(ASTNode):
-    def exec(self, **kwargs) -> object:
-        return self.value
-
-class StringNode(ASTNode):
-    def exec(self, **kwargs) -> object:
-        return self.value
-
-class BooleanNode(ASTNode):
-    def exec(self, **kwargs) -> object:
-        return self.value
-
-class VariableNode(ASTNode):
-    def exec(self, **kwargs) -> object:
-        return kwargs['get_variable'](self.value, True)
-
-class AssignNode(ASTNode):
-    def __init__(self, left: VariableNode, right: ASTNode):
-        super().__init__(Token(Token.EOF, ''))
-        self._left: VariableNode = left
-        self._right: ASTNode = right
-
-    def exec(self, **kwargs) -> object:
-        return kwargs['set_variable'](self.left.value, self.right.exec(**kwargs))
-
-    @property
-    def left(self) -> VariableNode:
-        return self._left
-
-    @property
-    def right(self) -> ASTNode:
-        return self._right
-
-    def __repr__(self):
-        return f"{self._left} = {self._right}"
+        return f"{self._value}"
 
 class BinOpNode(ASTNode):
-    def __init__(self, left: ASTNode, token: Token, right: ASTNode):
-        super().__init__(token)
+    def __init__(self, value: object, left: ASTNode, right: ASTNode):
+        super().__init__(value)
         self._left: ASTNode = left
         self._right: ASTNode = right
 
-    def exec(self, **kwargs) -> object:
-        operator = self.token.type
-        left = self.left.exec(**kwargs)
-        right = self.right.exec(**kwargs)
+    @staticmethod
+    def order_fat(node, token: Token, left: ASTNode, right: ASTNode):
+        if isinstance(right, BinOpNode):
+            right: BinOpNode = right
+            if right.center and (
+                node.FEATURE['order'] < right.FEATURE['order']
+            ):
+                return ASTNode.get_node(Token(
+                    right.FEATURE['token'],
+                    Token.token(right.FEATURE['token']),
+                    right.getline()
+                ), **{
+                    'left': BinOpNode.order_fat(node, token, left, right.left),
+                    'right': right.right
+                })
 
-        if operator == Token.PLUS:
-            if isinstance(right, str) or isinstance(right, str):
-                return str(left) + str(right)
-            return left + right
-
-        elif operator == Token.MINUS:
-            return left - right
-
-        elif operator == Token.MULTIPLY:
-            return left * right
-
-        elif operator == Token.DIViDE:
-            if right == 0:
-                raise ZeroDivisionError("Erro: Divisão por zero não permitida no afri.")
-            return left / right
-
-        return None
+        return node(token.value, left, right).setline(token.line)
 
     @property
     def left(self) -> ASTNode:
@@ -94,53 +183,48 @@ class BinOpNode(ASTNode):
     def right(self) -> ASTNode:
         return self._right
 
+    @property
+    def center(self) -> bool:
+        return False
+
     def __repr__(self):
-        return f"({self._left} {self._token.value} {self._right})"
+        return f"{self._left} {self._value} {self._right}"
 
-class VerNode(ASTNode):
-    def __init__(self, arg: ASTNode):
-        super().__init__(Token(Token.EOF, ''))
-        self._arg: ASTNode = arg
-
-    def exec(self, **kwargs) -> object:
-        print(self.arg.exec(**kwargs))
+class UniOpNode(ASTNode):
+    def __init__(self, value: object, right: ASTNode):
+        super().__init__(value)
+        self._right: ASTNode = right
 
     @property
-    def arg(self):
-        return self._arg
+    def right(self) -> ASTNode:
+        return self._right
 
     def __repr__(self):
-        return f"ver {self._arg}"
+        return f"{self._value} {self._right}"
 
-class ReceberNode(ASTNode):
-    def __init__(self, var: VariableNode):
-        super().__init__(Token(Token.EOF, ''))
-        self._var: VariableNode = var
+class FunctionNode(ASTNode):
+    def __init__(self, value: object, args: ASTNode):
+        super().__init__(value)
+        self._args: ASTNode = args
 
-    def exec(self, **kwargs) -> object:
-        name = self.var.value
-        value = input().strip()
+    @ASTNode.ctrl
+    def exec(self, **kwargs):
+        from .nodes.group import SeparateNode
 
-        # Mapeamento dinâmico inteligente no input do afri
-        if value == "verdade":
-            kwargs['set_variable'](name, True)
-
-        elif value == "falso":
-            kwargs['set_variable'](name, False)
-
-        elif value.isdigit():
-            kwargs['set_variable'](name, int(value))
+        if not isinstance(self.args, EOFNode):
+            args = SeparateNode.to_list(self.args)
         else:
-            try:
-                kwargs['set_variable'](name, float(value))
-            except ValueError:
-                kwargs['set_variable'](name, value)
+            args = []
+        return self._main(*args, **kwargs)
 
-        return kwargs['get_variable'](name, True)
+    def _main(self, *args, **kwargs) -> object:
+        pass
 
     @property
-    def var(self):
-        return self._var
+    def args(self) -> ASTNode:
+        return self._args
 
     def __repr__(self):
-        return f"receber {self._var}"
+        return f"{self._value} {self._args}"
+
+from .nodes import *

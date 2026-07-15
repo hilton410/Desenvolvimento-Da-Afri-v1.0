@@ -1,7 +1,7 @@
 # ==================================================
 # MANAGEMENT.PY - Gerenciador de interfaces
 # ==================================================
-from afri.afri_interpreter import AfriInterpreter
+from .afri_interpreter import AfriInterpreter, Token
 import os
 
 def afri_header():
@@ -33,16 +33,25 @@ def afri_clear():
     os.system("cls")
 
 def exec_command(command: str, afri_interpreter: AfriInterpreter):
-    try:
-        afri_interpreter.run(command)
-    except Exception as e:
-        print(f"\033[31mErro\033[m: {e}")
+    output = afri_interpreter.run(command)
+
+    if 'parser_errors' in output:
+        for parser_error in output['parser_errors']:
+            print(f"\033[31m{parser_error}\033[m")
+
+    if Token.ERROR in output:
+        print(f"\033[31m{output[Token.ERROR][0]}: {output[Token.ERROR][2]}, linha {output[Token.ERROR][1]}\033[m")
 
 def exec_code(code: str, afri_interpreter: AfriInterpreter):
-    try:
-        afri_interpreter.run(code)
-    except Exception as e:
-        print(f"\033[31mErro\033[m: {e}")
+    output = afri_interpreter.run(code)
+    if 'parser_errors' in output:
+        for parser_error in output['parser_errors']:
+            print(f"\033[31m{parser_error}\033[m")
+
+    if Token.ERROR in output:
+        print(f"\033[31m{output[Token.ERROR][0]}: {output[Token.ERROR][2]}, linha {output[Token.ERROR][1]}\033[m")
+
+    return output['result']
 
 def command_line():
     afri_header()

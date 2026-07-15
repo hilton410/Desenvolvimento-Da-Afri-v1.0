@@ -1,0 +1,70 @@
+# Simples programa de iteração com o usuário #
+
+ver
+"-----------------------------------------
+Bem vindo ao ecossistema da Afri Language!
+------------------------------------------
+Digite seu nome?"
+
+# Recebendo o nome do usuário #
+receber nome
+ver "------------------------------------------"
+ver "É um grande prazer conhecer-te " + nome + "!"
+receber _
+
+faca {
+    ver
+"-----------------------------------------
+O que gostarias de fazer agora?
+------------------------------------------
+[1] Somar
+[2] Subtrair
+[3] Multiplicar
+[4] Dividir
+[0] Sair
+------------------------------------------
+Digite sua opção!"
+
+    receber opcao
+    ver "------------------------------------------"
+
+    se opcao != 0 e opcao < 5 {
+        ver "Digite o primeiro número: "
+        receber x
+        ver "Digite o segundo número: "
+        receber y
+    }
+
+    escolha opcao {
+        caso 1 {
+            ver x + " + " + y + " = " + (x + y)
+            receber _
+            quebrar
+        }
+        caso 2 {
+            ver x + " - " + y + " = " + (x - y)
+            receber _
+            quebrar
+        }
+        caso 3 {
+            ver x + " * " + y + " = " + (x * y)
+            receber _
+            quebrar
+        }
+        caso 4 {
+            ver x + " / " + y + " = " + (x / y)
+            receber _
+            quebrar
+        }
+        caso 0 {
+            ver "Obrigado por espermentar a Afri Language!"
+            ver "------------------------------------------"
+            quebrar
+        }
+        contrario {
+            ver "Olha... " + nome + " não temos a opção [" + opcao + "]! Infelizmente."
+            receber _
+        }
+    }
+}
+enquanto opcao != 0

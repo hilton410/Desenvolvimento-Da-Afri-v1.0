@@ -1,4 +1,7 @@
-from afri.model.parser import *
+# ==================================================
+# AFRIINTERPRETER.PY - Interpretador de código
+# ==================================================
+from .model.parser import *
 
 class AfriInterpreter:
     def __init__(self):
@@ -12,17 +15,36 @@ class AfriInterpreter:
         lexer = Lexer(code)
         parser = Parser(lexer)
 
-        for node in parser.parse():
-            node.exec(**self._kwargs)
+        value = None
+        nodes = parser.parse()
 
-    def _get_variable(self, name: str, error=False):
+        if not len(parser.errors):
+            for node in nodes:
+                value = node.exec(**self._kwargs)
+                if ASTNode.exs_ctrl():
+                    break
+
+        output = ASTNode.all_ctrl()
+        for key in output.keys():
+            ASTNode.del_ctrl(key)
+        output.update({
+            'result': value,
+            'parser_errors': parser.errors,
+            'afri': ASTNode.format_data(value, src=True),
+        })
+        return output
+
+    def _get_variable(self, name: str, node: ASTNode, error=False):
         if name in self._table_variables:
             return self._table_variables[name]
 
         if error:
-            raise Exception(f"Erro de Execução: A variável '{name}' não existe.")
+            ASTNode.add_ctrl(Token.ERROR, [
+                Token.VALUEERROR, node.getline(),
+                f"a variável '{name}' não existe"
+            ])
         return None
 
-    def _set_variable(self, name: str, value: object, error=False):
-        self._get_variable(name, error)
+    def _set_variable(self, name: str, value: object, node: ASTNode, error=False):
+        self._get_variable(name, node, error)
         self._table_variables[name] = value

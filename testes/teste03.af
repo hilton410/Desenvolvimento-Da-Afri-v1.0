@@ -1,0 +1,48 @@
+# Estruturas de controle #
+
+# Condicionais #
+idade = 3
+
+ver "verificando.. fazendo download..."
+se idade < 18
+    ver "Subway surf na PlayStore é para maiores de 18"
+senao
+    ver "Subway surf instalado!"
+
+opcao = 10
+escolha opcao {
+    caso 10
+        ver "carro"
+    caso 11 {
+        ver "motocicleta"
+        quebrar
+    }
+    caso 12 {
+        ver "Trem"
+    }
+    caso 13 {
+        ver "Comboio"
+        quebrar
+    }
+    contrario
+        ver "Transporte não encontrado!"
+}
+
+# Loops #
+i = 0
+enquanto i <= 12 {
+    i+=1
+    se i e i % 3 == 0
+        ver i
+}
+
+para j=13; j <= 20; j+=1; {
+    se j e j % 3 == 0
+        ver j
+}
+
+faca {
+    ver "contar e contar"
+}
+enquanto falso
+

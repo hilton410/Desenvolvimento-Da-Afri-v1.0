@@ -1,0 +1,43 @@
+# Tipo de dados da linguagem afri #
+
+# tipo texto #
+nome = "Caio"
+sobrenome = "dos Santos"
+
+# tipo inteiro #
+idade = 3
+
+# decimal #
+peso = 15.9
+altura = 1.10
+
+# binário #
+casado = falso
+menor = verdade
+
+# nenhum valor #
+carro_actual = nada
+
+# lista (adicional) #
+gostos = ("correr", "brincar", "não descansar")
+pessoa = (
+    nome + " " + sobrenome,
+    idade, peso, altura,
+    casado, menor
+)
+
+# imprimir valores #
+ver nome, sobrenome
+ver "idade: " + idade
+ver "peso e altura: " + peso, altura
+ver "casado e menor de idade: " + casado, menor
+ver "meu carro: " + carro_actual
+ver gostos
+ver pessoa
+
+# obter valor da lista #
+ver "qual será? " + pessoa[pessoa[1]]
+
+# alterar valor da lista #
+pessoa[pessoa[1]] = 1.25
+ver "agora altura será: " + pessoa[pessoa[1]]

@@ -1,0 +1,20 @@
+# Recebendo dados via teclado #
+
+ver "Qual é o seu nome?"
+receber nome
+
+ver "Qual é o sua idade?"
+receber idade
+
+ver "Qual é o sua profissão?"
+receber profissao
+
+ver "------------------------------------------"
+ver "           DESCRIÇÃO DO USUÁRIO           "
+ver "------------------------------------------"
+ver "NOME: " + nome
+ver "IDADE: " + idade
+ver "PROFISSÃO: " + profissao
+se idade
+    ver "MAIOR DE IDADE: " + (idade >= 18)
+ver "------------------------------------------"

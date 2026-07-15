@@ -1,0 +1,34 @@
+# Operadores da linguagem #
+
+# Operadores matemáticos #
+soma = 10 + 20
+subtracao = 15 - 7
+multiplicacao = 8 * 9
+divisao = 1 / 0.1
+resto = 10 % 4
+potencia = 2 ** 3
+
+# Operadores de atribuicao #
+resultado = 0
+resultado += soma
+resultado -= subtracao
+resultado *= multiplicacao
+resultado /= divisao
+resultado %= resto
+resultado **= potencia
+
+# operadores de comparação e lógicos #
+comparado = soma < subtracao
+comparado = multiplicacao > divisao
+# comparado = resto <= potencia #
+comparado = soma - subtracao >= multiplicacao / divisao
+
+# visualizar resultados #
+ver "soma: " + soma
+ver "subtração: " + subtracao
+ver "multiplicação: " + multiplicacao
+ver "divisão: " + divisao
+# ver "resto: " + resto #
+ver "potência: " + potencia
+ver "resultado: " + resultado
+ver "comparado: " + comparado
