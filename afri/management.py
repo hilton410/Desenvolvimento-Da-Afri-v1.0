@@ -2,7 +2,7 @@
 # MANAGEMENT.PY - Gerenciador de interfaces
 # ==================================================
 from .afri_interpreter import AfriInterpreter, Token
-import os
+import os, sys
 
 def afri_header():
     print(
@@ -30,7 +30,11 @@ def afri_help():
     , end="")
 
 def afri_clear():
-    os.system("cls")
+    command = ''
+    if sys.platform.startswith('win'): command = 'cls'
+    elif sys.platform.startswith('linux'): command = 'clear'
+    elif sys.platform.startswith('darwin'): command = 'clear'
+    os.system(command)
 
 def exec_command(command: str, afri_interpreter: AfriInterpreter):
     output = afri_interpreter.run(command)
